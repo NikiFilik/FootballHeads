@@ -1,24 +1,33 @@
 #pragma once
-#include <string>
 #include <SFML/Graphics.hpp>
 
+#include <string>
+
+//#include "Object.hpp"
 #include "Ball.hpp"
 #include "Player.hpp"
-
 
 namespace nf {
 	class Game {
 	private:
-		int width, height;
-		std::string title;
-		sf::RenderWindow window;
-		sf::Clock clock;
-		nf::Ball ball;
-		nf::Player player1, player2;
+		int mWidth = 1920, mHeight = 1080;
+		std::string mTitle = "SportHeads Football";
+		sf::RenderWindow mWindow;
+
+		//nf::Object mField;
+		nf::Ball mBall;
+		nf::Player mPlayer1, mPlayer2;
+
+		int mFieldWidth = 1920, mFieldHeight = 960;
+		sf::Texture mBackgroundTexture;
+		sf::Sprite mBackground;
+
+		void processEvents(sf::Time deltaTime);
+
+		void update(sf::Time deltaTime);
+		void render();
 	public:
-		Game(int width, int height, std::string title);
-		void setup();
-		void lifeCycle();
-		void end();
+		Game();
+		void run();
 	};
 }

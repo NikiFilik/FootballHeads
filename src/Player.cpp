@@ -4,130 +4,122 @@
 #include <cmath>
 
 namespace nf {
-	void Player::setup(float positionX, float positionY, float radius, int redColor, int greenColor, int blueColor) {
-		this->positionX = positionX;
-		this->positionY = positionY;
-		velocityX = 0;
-		velocityY = 0;
-		accelerationX = 0;
-		accelerationY = 0.3;
-		this->radius = radius;
-		shape.setRadius(radius);
-		shape.setOrigin(radius, radius);
-		shape.setPosition(positionX, positionY);
-		shape.setFillColor(sf::Color(redColor, greenColor, blueColor, 255));
+	void Player::setup(float positionX, float positionY, std::string fileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey) {
+		mPositionX = positionX;
+		mPositionY = positionY;
+
+		mTexture.loadFromFile(fileName);
+		mSprite.setTexture(mTexture);
+		mSprite.setOrigin(mRadius, mRadius);
+		mSprite.setPosition(mPositionX, mPositionY);
+
+		mLeftKey = leftKey;
+		mRightKey = rightKey;
+		mJumpKey = jumpKey;
 	}
 
-	void Player::setVelocityX(float velocityX) {
-		this->velocityX = velocityX;
-	}
-	void Player::setVelocityY(float velocityY) {
-		this->velocityY = velocityY;
+	sf::Sprite Player::getSprite() {
+		return mSprite;
 	}
 
-	float Player::getPositionX() {
-		return positionX;
-	}
-	float Player::getPositionY() {
-		return positionY;
-	}
-	float Player::getVelocityX() {
-		return velocityX;
-	}
-	float Player::getVelocityY() {
-		return velocityY;
-	}
-	float Player::getRadius() {
-		return radius;
-	}
-	sf::CircleShape Player::getShape() {
-		return shape;
-	}
+	void Player::move(sf::Time deltaTime, int width, int height) {
+		mPositionX += mSpeedX * deltaTime.asSeconds();
+		mPositionY += mSpeedY * deltaTime.asSeconds();
 
-	void Player::leftButtonPressed() {
-		velocityX = std::max(-600.f, velocityX - 1);
-	}
-	void Player::rightButtonPressed() {
-		velocityX = std::min(600.f, velocityX + 1);
-	}
-	void Player::jumpButtonPressed() {
-		velocityY -= 1000;
-	}
-
-	void Player::move(float deltaTime, int width, int height) {
-		positionX += velocityX * deltaTime + (accelerationX * deltaTime * deltaTime) / 2;
-		positionY += velocityY * deltaTime + (accelerationY * deltaTime * deltaTime) / 2;
-
-		if (positionX - radius < 0) {
-			positionX = radius;
+		if (mPositionX <= mRadius) {
+			mPositionX = mRadius;
 		}
-		if (positionX + radius > width) {
-			positionX = width - radius;
+		if (mPositionX >= width - mRadius) {
+			mPositionX = width - mRadius;
 		}
-		if (positionY - radius < 0) {
-			positionY = radius;
+		if (mPositionY <= mRadius) {
+			mPositionY = mRadius;
 		}
-		if (positionY + radius > height) {
-			positionY = height - radius;
+		if (mPositionY >= height - mRadius) {
+			mPositionY = height - mRadius;
 		}
 
-		shape.setPosition(positionX, positionY);
+		mSprite.setPosition(mPositionX, mPositionY);
 
-		velocityX = velocityX + accelerationX;
-		velocityY = velocityY + accelerationY;
+		mSpeedY += mAccelerationY * deltaTime.asSeconds();
 
-		if (velocityX > 0) {
-			velocityX = std::max(0.f, velocityX - 0.5f);
+		if (mSpeedX > 0) {
+			mSpeedX = std::max(0.f, mSpeedX - mAccelerationBreak * deltaTime.asSeconds());
 		}
-		if (velocityX < 0) {
-			velocityX = std::min(0.f, velocityX + 0.5f);
+		if (mSpeedX < 0) {
+			mSpeedX = std::min(0.f, mSpeedX + mAccelerationBreak * deltaTime.asSeconds());
+		}
+
+		if (mSpeedX > mMaxSpeedX) {
+			mSpeedX = mMaxSpeedX;
+		}
+		if (mSpeedX < -mMaxSpeedX) {
+			mSpeedX = -mMaxSpeedX;
 		}
 	}
 
-	bool Player::leftWallCollisionDetector() {
-		if (positionX <= radius && velocityX <= 0) {
-			return true;
-		}
-		return false;
+	void Player::moveLeft(sf::Time deltaTime) {
+		mSpeedX -= mAccelerationBoost * deltaTime.asSeconds();
 	}
-	bool Player::rightWallCollisionDetector(int width) {
-		if (positionX >= width - radius && velocityX >= 0) {
-			return true;
-		}
-		return false;
+	void Player::moveRight(sf::Time deltaTime) {
+		mSpeedX += mAccelerationBoost * deltaTime.asSeconds();
 	}
-	bool Player::upWallCollisionDetector() {
-		if (positionY <= radius && velocityY <= 0) {
-			return true;
-		}
-		return false;
+	void Player::doJump() {
+
 	}
-	bool Player::downWallCollisionDetector(int height) {
-		if (positionY >= height - radius && velocityY >= 0) {
+
+	void Player::handleWallsCollision(int width, int height) {
+		if (mPositionX <= mRadius && mSpeedX < 0) {
+			mSpeedX = -mSpeedX * mJumpingCoefficient;
+		}
+		if (mPositionX >= width - mRadius && mSpeedX > 0) {
+			mSpeedX = -mSpeedX * mJumpingCoefficient;
+		}
+		if (mPositionY <= mRadius && mSpeedY < 0) {
+			mSpeedY = -mSpeedY * mJumpingCoefficient;
+		}
+		if (mPositionY >= height - mRadius && mSpeedY > 0) {
+			mSpeedY = -mSpeedY * mJumpingCoefficient;
+		}
+	}
+
+	/*bool Player::straightCollisionDetector(sf::Vertex vertex1, sf::Vertex vertex2) {
+		float A = vertex2.position.y - vertex1.position.y, B = vertex1.position.x - vertex2.position.x;
+		float C = vertex2.position.x * vertex1.position.y - vertex1.position.x * vertex2.position.y;
+		float distance = abs(A * mPositionX + B * mPositionY + C) / sqrt(A * A + B * B);
+		if (distance <= mRadius) {
 			return true;
 		}
 		return false;
 	}
 
-	void Player::calculateLeftWallCollision() {
-		velocityX = 0;
-	}
-	void Player::calculateRightWallCollision() {
-		velocityX = 0;
-	}
-	void Player::calculateUpWallCollision() {
-		velocityY = 0;
-	}
-	void Player::calculateDownWallCollision() {
-		velocityY = 0;
-	}
+	void Player::handleStraightCollision(sf::Vertex vertex1, sf::Vertex vertex2) {
+		float normalVectorX = vertex2.position.x - vertex1.position.x;
+		float normalVectorY = vertex2.position.y - vertex1.position.y;
 
-	bool Player::playerCollisionDetector(Player other) {
-		if (power(positionX - other.getPositionX(), 2) + power(positionY - other.getPositionY(), 2) <= power(radius + other.getRadius(), 2)) {
-			float deltaPositionX = positionX - other.getPositionX();
-			float deltaPositionY = positionY - other.getPositionY();
-			float deltaVelocityX = velocityX - other.getVelocityX();
-			float deltaVelocityY = velocityY - other.getVelocityY();
+		float unitNormalVectorX = normalVectorX / sqrt(nf::power(normalVectorX, 2) + nf::power(normalVectorY, 2));
+		float unitNormalVectorY = normalVectorY / sqrt(nf::power(normalVectorX, 2) + nf::power(normalVectorY, 2));
+		float unitTangentVectorX = unitNormalVectorY;
+		float unitTangentVectorY = -unitNormalVectorX;
+
+		float normalSpeed = unitNormalVectorX * mSpeedX + unitNormalVectorY * mSpeedY;
+		float tangentSpeed = -(unitTangentVectorX * mSpeedX + unitTangentVectorY * mSpeedY);
+
+		float normalSpeedX = normalSpeed * unitNormalVectorX;
+		float normalSpeedY = normalSpeed * unitNormalVectorY;
+		float tangentSpeedX = tangentSpeed * unitTangentVectorX;
+		float tangentSpeedY = tangentSpeed * unitTangentVectorY;
+
+		mSpeedX = (normalSpeedX + tangentSpeedX) * mSlipCoefficient;
+		mSpeedY = (normalSpeedY + tangentSpeedY) * mJumpingCoefficient;
+	}*/
+
+	bool Player::circleCollisionDetector(Player player) {
+		if (power(mPositionX - player.getPositionX(), 2) + power(mPositionY - player.getPositionY(), 2) <= power(mRadius + player.getRadius(), 2)) {
+			float deltaPositionX = mPositionX - player.getPositionX();
+			float deltaPositionY = mPositionY - player.getPositionY();
+			float deltaVelocityX = mSpeedX - player.getSpeedX();
+			float deltaVelocityY = mSpeedY - player.getSpeedY();
 			if (deltaPositionX * deltaVelocityX + deltaPositionY * deltaVelocityY <= 0) {
 				return true;
 			}
@@ -135,22 +127,20 @@ namespace nf {
 		return false;
 	}
 
-	void Player::calculatePlayerCollision(Player& other) {
-		//https://www.vobarian.com/collisions/2dcollisions2.pdf
-
-		float x1 = positionX, y1 = positionY, x2 = other.getPositionX(), y2 = other.getPositionY();
+	void Player::handleCircleCollision(Player& player) {
+		float x1 = mPositionX, y1 = mPositionY, x2 = player.getPositionX(), y2 = player.getPositionY();
 		float nx = x2 - x1, ny = y2 - y1;
 		float unx = nx / std::sqrt(nx * nx + ny * ny), uny = ny / std::sqrt(nx * nx + ny * ny);
 		float utx = uny, uty = -unx;
 
-		float v1x = velocityX, v1y = velocityY, v2x = other.getVelocityX(), v2y = other.getVelocityY();
+		float v1x = mSpeedX, v1y = mSpeedY, v2x = player.getSpeedX(), v2y = player.getSpeedY();
 
 		float v1n = unx * v1x + uny * v1y, v1t = utx * v1x + uty * v1y;
 		float v2n = unx * v2x + uny * v2y, v2t = utx * v2x + uty * v2y;
 
 		float V1t = v1t, V2t = v2t;
 
-		float m1 = power(radius, 3), m2 = power(other.getRadius(), 3);
+		float m1 = power(mRadius, 3), m2 = power(player.getRadius(), 3);
 		float V1n = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
 		float V2n = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
 
@@ -162,9 +152,42 @@ namespace nf {
 		float V1x = V1nx + V1tx, V1y = V1ny + V1ty;
 		float V2x = V2nx + V2tx, V2y = V2ny + V2ty;
 
-		velocityX = V1x;
-		velocityY = V1y;
-		other.velocityX = V2x;
-		other.velocityY = V2y;
+		mSpeedX = V1x;
+		mSpeedY = V1y;
+		player.setSpeedX(V2x);
+		player.setSpeedY(V2y);
+	}
+
+	float Player::getPositionX() {
+		return mPositionX;
+	}
+	float Player::getPositionY() {
+		return mPositionY;
+	}
+	float Player::getSpeedX() {
+		return mSpeedX;
+	}
+	float Player::getSpeedY() {
+		return mSpeedY;
+	}
+	float Player::getRadius() {
+		return mRadius;
+	}
+
+	sf::Keyboard::Key Player::getLeftKey() {
+		return mLeftKey;
+	}
+	sf::Keyboard::Key Player::getRightKey() {
+		return mRightKey;
+	}
+	sf::Keyboard::Key Player::getJumpKey() {
+		return mJumpKey;
+	}
+
+	void Player::setSpeedX(float speed) {
+		mSpeedX = speed;
+	}
+	void Player::setSpeedY(float speed) {
+		mSpeedY = speed;
 	}
 }

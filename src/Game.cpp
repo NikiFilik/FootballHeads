@@ -1,125 +1,121 @@
-#include <iostream>
-
 #include "Game.hpp"
 
+#include <iostream>
+
 namespace nf {
-	Game::Game(int width, int height, std::string title) {
-		this->width = width;
-		this->height = height;
-		this->title = title;
+	const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
+
+	Game::Game() : mWindow(sf::VideoMode(mWidth, mHeight), mTitle, sf::Style::Fullscreen) {
+		/*mField.setup(11);
+		mField[0].position = sf::Vector2f(60.f, 960.f);
+		mField[1].position = sf::Vector2f(60.f, 600.f);
+		mField[2].position = sf::Vector2f(120.f, 360.f);
+		mField[3].position = sf::Vector2f(360.f, 120.f);
+		mField[4].position = sf::Vector2f(600.f, 60.f);
+		mField[5].position = sf::Vector2f(1320.f, 60.f);
+		mField[6].position = sf::Vector2f(1560.f, 120.f);
+		mField[7].position = sf::Vector2f(1800.f, 360.f);
+		mField[8].position = sf::Vector2f(1860.f, 600.f);
+		mField[9].position = sf::Vector2f(1860.f, 960.f);
+		mField[10].position = sf::Vector2f(60.f, 960.f);*/
+
+		mBall.setup(960, 540);
+
+		mPlayer1.setup(1440, 840, "../media/textures/player1.png", sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up);
+		mPlayer2.setup(480, 840, "../media/textures/player2.png", sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W);
+
+		mBackgroundTexture.loadFromFile("../media/textures/background.png");
+		mBackground.setTexture(mBackgroundTexture);
 	}
-	void Game::setup() {
-		ball.setup(800, 450, 25);
-		player1.setup(1200, 600, 50, 255, 127, 63);
-		player2.setup(400, 600, 50, 63, 127, 255);
-		window.create(sf::VideoMode(width, height), title);
-	}
-	void Game::lifeCycle() {
-		clock.restart();
-		while (window.isOpen())
+
+	void Game::run() {
+		while (mWindow.isOpen())
 		{
-			sf::Event event;
-			while (window.pollEvent(event))
+			sf::Clock clock;
+			sf::Time timeSinceLastUpdate = sf::Time::Zero;
+			while (mWindow.isOpen())
 			{
-				if (event.type == sf::Event::Closed)
-					window.close();
-			}
-
-			window.clear(sf::Color::Black);
-
-			if (ball.leftWallCollisionDetector()) {
-				ball.calculateLeftWallCollision();
-			}
-			if (ball.rightWallCollisionDetector(width)) {
-				ball.calculateRightWallCollision();
-			}
-			if (ball.upWallCollisionDetector()) {
-				ball.calculateUpWallCollision();
-			}
-			if (ball.downWallCollisionDetector(height)) {
-				ball.calculateDownWallCollision();
-			}
-
-			if (player1.leftWallCollisionDetector()) {
-				player1.calculateLeftWallCollision();
-			}
-			if (player1.rightWallCollisionDetector(width)) {
-				player1.calculateRightWallCollision();
-			}
-			if (player1.upWallCollisionDetector()) {
-				player1.calculateUpWallCollision();
-			}
-			if (player1.downWallCollisionDetector(height)) {
-				player1.calculateDownWallCollision();
-			}
-
-			if (player2.leftWallCollisionDetector()) {
-				player2.calculateLeftWallCollision();
-			}
-			if (player2.rightWallCollisionDetector(width)) {
-				player2.calculateRightWallCollision();
-			}
-			if (player2.upWallCollisionDetector()) {
-				player2.calculateUpWallCollision();
-			}
-			if (player2.downWallCollisionDetector(height)) {
-				player2.calculateDownWallCollision();
-			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-			{
-				player1.leftButtonPressed();
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-			{
-				player1.rightButtonPressed();
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-			{
-				if (player1.downWallCollisionDetector(height) || (player1.playerCollisionDetector(player2) && player2.downWallCollisionDetector(height))) {
-					player1.jumpButtonPressed();
+				processEvents(TimePerFrame);
+				timeSinceLastUpdate += clock.restart();
+				while (timeSinceLastUpdate > TimePerFrame)
+				{
+					timeSinceLastUpdate -= TimePerFrame;
+					processEvents(TimePerFrame);
+					update(TimePerFrame);
 				}
+				render();
 			}
-
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			{
-				player2.leftButtonPressed();
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			{
-				player2.rightButtonPressed();
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			{
-				if (player2.downWallCollisionDetector(height) || (player2.playerCollisionDetector(player1) && player1.downWallCollisionDetector(height))) {
-					player2.jumpButtonPressed();
-				}
-			}
-
-			if (ball.playerCollisionDetector(player1)) {
-				ball.calculatePlayerCollision(player1);
-			}
-			if (ball.playerCollisionDetector(player2)) {
-				ball.calculatePlayerCollision(player2);
-			}
-
-			if (player1.playerCollisionDetector(player2)) {
-				player1.calculatePlayerCollision(player2);
-			}
-
-			sf::Time dt = clock.restart();
-
-			ball.move(dt.asSeconds(), width, height);
-			player1.move(dt.asSeconds(), width, height);
-			player2.move(dt.asSeconds(), width, height);
-
-			window.draw(ball.getShape());
-			window.draw(player1.getShape());
-			window.draw(player2.getShape());
-
-			window.display();
 		}
 	}
-	void Game::end() {
+
+	void Game::processEvents(sf::Time deltaTime) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+			mWindow.close();
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer1.getLeftKey())) {
+			mPlayer1.moveLeft(deltaTime);
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer1.getRightKey())) {
+			mPlayer1.moveRight(deltaTime);
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer1.getJumpKey())) {
+
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer2.getLeftKey())) {
+			mPlayer2.moveLeft(deltaTime);
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer2.getRightKey())) {
+			mPlayer2.moveRight(deltaTime);
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer2.getJumpKey())) {
+
+		}
+	}
+
+	void Game::update(sf::Time deltaTime) {
+		/*for (int i = 0; i < 10; i++) {
+			if (mBall.straightCollisionDetector(mField[i], mField[i + 1])) {
+				mBall.handleStraightCollision(mField[i], mField[i + 1]);
+			}
+			if (mPlayer1.straightCollisionDetector(mField[i], mField[i + 1])) {
+				mPlayer1.handleStraightCollision(mField[i], mField[i + 1]);
+			}
+			if (mPlayer2.straightCollisionDetector(mField[i], mField[i + 1])) {
+				mPlayer2.handleStraightCollision(mField[i], mField[i + 1]);
+			}
+		}*/
+		mBall.handleWallsCollision(mFieldWidth, mFieldHeight);
+		mPlayer1.handleWallsCollision(mFieldWidth, mFieldHeight);
+		mPlayer2.handleWallsCollision(mFieldWidth, mFieldHeight);
+
+		if (mBall.circleCollisionDetector(mPlayer1)) {
+			mBall.handleCircleCollision(mPlayer1);
+		}
+		if (mBall.circleCollisionDetector(mPlayer2)) {
+			mBall.handleCircleCollision(mPlayer2);
+		}
+		if (mPlayer1.circleCollisionDetector(mPlayer2)) {
+			mPlayer1.handleCircleCollision(mPlayer2);
+		}
+
+		//mPlayer1.update(mField[9], mField[10], mPlayer2);
+		//mPlayer2.update(mField[9], mField[10], mPlayer1);
+
+		mBall.move(deltaTime, mFieldWidth, mFieldHeight);
+		mPlayer1.move(deltaTime, mFieldWidth, mFieldHeight);
+		mPlayer2.move(deltaTime, mFieldWidth, mFieldHeight);
+	}
+
+	void Game::render() {
+		mWindow.clear();
+		
+		//mWindow.draw(mField.getShape(), 11, sf::LineStrip);
+		mWindow.draw(mBackground);
+
+		mWindow.draw(mBall.getSprite());
+		mWindow.draw(mPlayer1.getSprite());
+		mWindow.draw(mPlayer2.getSprite());
+
+		mWindow.display();
 	}
 }

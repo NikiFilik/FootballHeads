@@ -2,36 +2,32 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <Player.hpp>
+#include "Player.hpp"
 
 namespace nf {
 	class Ball {
 	private:
-		float positionX, positionY;
-		float velocityX, velocityY;
-		float accelerationX, accelerationY;
-		float radius;
-		sf::CircleShape shape;
+		float mPositionX, mPositionY;
+		float mSpeedX, mSpeedY;
+		float mMaxSpeed = 1000;
+		float mAccelerationX = 0, mAccelerationY = 1500;
+		float mJumpingCoefficient = 0.7;
+		float mRadius = 25;
+		sf::Texture mTexture;
+		sf::Sprite mSprite;
 	public:
-		Ball() = default;
+		void setup(float positionX, float positionY);
 
-		void setup(float positionX, float positionY, float radius);
+		sf::Sprite getSprite();
 
-		sf::CircleShape getShape();
+		void move(sf::Time deltaTime, int width, int height);
 
-		void move(float deltaTime, int width, int height);
+		void handleWallsCollision(int width, int height);
 
-		bool leftWallCollisionDetector();
-		bool rightWallCollisionDetector(int width);
-		bool upWallCollisionDetector();
-		bool downWallCollisionDetector(int height);
+		/*bool straightCollisionDetector(sf::Vertex vertex1, sf::Vertex vertex2);
+		void handleStraightCollision(sf::Vertex vertex1, sf::Vertex vertex2);*/
 
-		void calculateLeftWallCollision();
-		void calculateRightWallCollision();
-		void calculateUpWallCollision();
-		void calculateDownWallCollision();
-
-		bool playerCollisionDetector(Player player);
-		void calculatePlayerCollision(Player& player);
+		bool circleCollisionDetector(Player player);
+		void handleCircleCollision(Player& player);
 	};
 }
