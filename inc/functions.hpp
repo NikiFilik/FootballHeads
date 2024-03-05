@@ -13,12 +13,3 @@ namespace nf {
 
 	void solveOneDimensionalCollision(float mass1, float mass2, float speed1, float speed2, float& newSpeed1, float& newSpeed2);
 }
-
-/*#pragma once
-
-#include <iostream>
-
-namespace nf {
-	int randIntFromRange(int a, int b);
-	float power(float a, int b);
-}*/

@@ -27,19 +27,3 @@ namespace nf {
 		newSpeed2 = (speed2 * (mass2 - mass1) + 2 * mass1 * speed1) / (mass1 + mass2);
 	}
 }
-
-/*#include "functions.hpp"
-
-namespace nf {
-	int randIntFromRange(int a, int b) {
-		return rand() % (b - a) + a;
-	}
-
-	float power(float a, int b) {
-		float c = 1;
-		for (int i = 1; i <= b; i++) {
-			c *= a;
-		}
-		return c;
-	}
-}*/

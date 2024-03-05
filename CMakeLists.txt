@@ -13,7 +13,7 @@ FetchContent_Declare(SFML
 FetchContent_MakeAvailable(SFML)
 
 include_directories("inc")
-add_executable("${PROJECT_NAME}" src/main.cpp src/Game.cpp src/Player.cpp src/Ball.cpp src/Object.cpp src/functions.cpp inc/Game.hpp inc/Player.hpp inc/Ball.hpp inc/Object.hpp inc/functions.hpp)
+add_executable("${PROJECT_NAME}" src/main.cpp src/Game.cpp src/Player.cpp src/Ball.cpp src/functions.cpp inc/Game.hpp inc/Player.hpp inc/Ball.hpp inc/functions.hpp)
 target_link_libraries("${PROJECT_NAME}" PRIVATE sfml-graphics)
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_17)
 
