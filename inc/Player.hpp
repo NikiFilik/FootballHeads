@@ -9,8 +9,8 @@ namespace nf {
 	private:
 		float mPositionX, mPositionY;
 		float mSpeedX = 0.f, mSpeedY = 0.f;
-		float mMaxSpeed = 500.f, mBoost = 2000.f, mSlowdown = 1000.f;
-		float mJumpForce = 700.f;
+		float mMaxSpeed = 500.f, mBoost = 3000.f, mSlowdown = 1500.f;
+		float mJumpForce = 650.f;
 		float mAccelerationX = 0.f, mAccelerationY = 1600.f;
 		float mRadius = 50.f, mDensity = 1.f;
 		float mBounceCoefficient = 0.f;
@@ -42,9 +42,9 @@ namespace nf {
 
 		void update(sf::Time deltaTime, int fieldWidth, int fieldHeight);
 
-		bool leftStraightCollisionDetector();
+		bool leftStraightCollisionDetector(int width);
 		bool rightStraightCollisionDetector(int width);
-		bool upStraightCollisionDetector();
+		bool upStraightCollisionDetector(int height);
 		bool downStraightCollisionDetector(int height);
 
 		void solveLeftStraightCollision();
@@ -54,5 +54,8 @@ namespace nf {
 
 		bool circleCollisionDetector(Player player);
 		void solveCircleCollision(Player& player);
+
+		bool circleCollisionDetector(sf::CircleShape circle);
+		void solveCircleCollision(sf::CircleShape& circle);
 	};
 }

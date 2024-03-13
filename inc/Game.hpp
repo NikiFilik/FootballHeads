@@ -20,6 +20,13 @@ namespace nf {
 		sf::Texture mBackgroundTexture;
 		sf::Sprite mBackground;
 
+		sf::Texture mGatesTexture;
+		sf::Sprite mGates;
+		sf::CircleShape mCrossbar1, mCrossbar2;
+		float mCrossbar1PositionX = 200.f, mCrossbar1PositionY = 660.f;
+		float mCrossbar2PositionX = 1720.f, mCrossbar2PositionY = 660.f;
+		float mCrossbarRadius = 10.f;
+
 		void processInput();
 		void update();
 		void render();

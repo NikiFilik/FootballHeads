@@ -9,7 +9,7 @@ namespace nf {
 	class Ball {
 	private:
 		float mPositionX, mPositionY;
-		float mSpeedX, mSpeedY;
+		float mSpeedX = 0, mSpeedY = 0;
 		float mAccelerationX = 0.f, mAccelerationY = 1600.f;
 		float mRadius = 25.f, mDensity = 1.f;
 		float mBounceCoefficient = 0.7f;
@@ -20,13 +20,15 @@ namespace nf {
 
 		void setup(float positionX, float positionY, std::string fileName);
 
+		float getPositionX();
+		float getPositionY();
 		sf::Sprite getSprite();
 
 		void update(sf::Time deltaTime, int fieldWidth, int fieldHeight);
 
-		bool leftStraightCollisionDetector();
+		bool leftStraightCollisionDetector(int width);
 		bool rightStraightCollisionDetector(int width);
-		bool upStraightCollisionDetector();
+		bool upStraightCollisionDetector(int height);
 		bool downStraightCollisionDetector(int height);
 
 		void solveLeftStraightCollision();
@@ -36,5 +38,8 @@ namespace nf {
 
 		bool circleCollisionDetector(Player player);
 		void solveCircleCollision(Player& player);
+
+		bool circleCollisionDetector(sf::CircleShape circle);
+		void solveCircleCollision(sf::CircleShape& circle);
 	};
 }

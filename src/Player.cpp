@@ -65,9 +65,8 @@ namespace nf {
 	}
 
 	void Player::update(sf::Time deltaTime, int fieldWidth, int fieldHeight) {
-		//исправить врем€
-		mPositionX += mSpeedX * deltaTime.asSeconds() + (mAccelerationX * power(deltaTime.asSeconds(), 2)) / 2;
-		mPositionY += mSpeedY * deltaTime.asSeconds() + (mAccelerationY * power(deltaTime.asSeconds(), 2)) / 2;
+		mPositionX += mSpeedX * deltaTime.asSeconds()/* + (mAccelerationX * power(deltaTime.asSeconds(), 2)) / 2*/;
+		mPositionY += mSpeedY * deltaTime.asSeconds()/* + (mAccelerationY * power(deltaTime.asSeconds(), 2)) / 2*/;
 
 		if (mPositionX - mRadius < 0) {
 			mPositionX = mRadius;
@@ -95,9 +94,8 @@ namespace nf {
 		}
 	}
 
-	//ƒобавить аргументы дл€ всех пр€мых
-	bool Player::leftStraightCollisionDetector() {
-		if (mPositionX <= mRadius && mSpeedX <= 0) {
+	bool Player::leftStraightCollisionDetector(int width) {
+		if (mPositionX <= width + mRadius && mSpeedX <= 0) {
 			return true;
 		}
 		return false;
@@ -108,14 +106,14 @@ namespace nf {
 		}
 		return false;
 	}
-	bool Player::upStraightCollisionDetector() {
-		if (mPositionY <= mRadius && mSpeedY <= 0) {
+	bool Player::upStraightCollisionDetector(int height) {
+		if (mPositionY <= height + mRadius && mSpeedY <= 0 && mPositionY > height) {
 			return true;
 		}
 		return false;
 	}
 	bool Player::downStraightCollisionDetector(int height) {
-		if (mPositionY >= height - mRadius && mSpeedY >= 0) {
+		if (mPositionY >= height - mRadius && mSpeedY >= 0 && mPositionY < height) {
 			return true;
 		}
 		return false;
@@ -175,5 +173,42 @@ namespace nf {
 		mSpeedY = newThisNormalSpeedY + newThisTangentSpeedY;
 		other.setSpeedX(newOtherNormalSpeedX + newOtherTangentSpeedX);
 		other.setSpeedY(newOtherNormalSpeedY + newOtherTangentSpeedY);
+	}
+
+	bool Player::circleCollisionDetector(sf::CircleShape circle) {
+		if (power(mPositionX - circle.getPosition().x, 2) + power(mPositionY - circle.getPosition().y, 2) <= power(mRadius + circle.getRadius(), 2)) {
+			float deltaPositionX = mPositionX - circle.getPosition().x;
+			float deltaPositionY = mPositionY - circle.getPosition().y;
+			float deltaSpeedX = mSpeedX - 0;
+			float deltaSpeedY = mSpeedY - 0;
+			if (deltaPositionX * deltaSpeedX + deltaPositionY * deltaSpeedY <= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	void Player::solveCircleCollision(sf::CircleShape& circle) {
+		//https://www.vobarian.com/collisions/2dcollisions2.pdf
+
+		float unitNormalVectorX, unitNormalVectorY, unitTangentVectorX, unitTangentVectorY;
+		nf::findCoordinatesOfUnitNormalVector(mPositionX, mPositionY, circle.getPosition().x, circle.getPosition().y, unitNormalVectorX, unitNormalVectorY);
+		unitTangentVectorX = unitNormalVectorY;
+		unitTangentVectorY = -unitNormalVectorX;
+
+		float playerNormalSpeed = unitNormalVectorX * mSpeedX + unitNormalVectorY * mSpeedY;
+		float playerTangentSpeed = unitTangentVectorX * mSpeedX + unitTangentVectorY * mSpeedY;
+		float circleNormalSpeed = 0;
+		float circleTangentSpeed = 0;
+
+		float playerMass = power(mRadius, 3) * mDensity, circleMass = power(circle.getRadius(), 3) * 1000.f;
+		float newPlayerNormalSpeed, newPlayerTangentSpeed, newCircleNormalSpeed, newCircleTangentSpeed;
+		nf::solveOneDimensionalCollision(playerMass, circleMass, playerNormalSpeed, circleNormalSpeed, newPlayerNormalSpeed, newCircleNormalSpeed);
+		newPlayerTangentSpeed = playerTangentSpeed;
+
+		float newPlayerNormalSpeedX = newPlayerNormalSpeed * unitNormalVectorX, newPlayerNormalSpeedY = newPlayerNormalSpeed * unitNormalVectorY;
+		float newPlayerTangentSpeedX = newPlayerTangentSpeed * unitTangentVectorX, newPlayerTangentSpeedY = newPlayerTangentSpeed * unitTangentVectorY;
+
+		mSpeedX = newPlayerNormalSpeedX + newPlayerTangentSpeedX;
+		mSpeedY = newPlayerNormalSpeedY + newPlayerTangentSpeedY;
 	}
 }
