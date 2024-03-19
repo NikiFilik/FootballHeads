@@ -10,7 +10,7 @@ namespace nf {
 	private:
 		float mPositionX, mPositionY;
 		float mSpeedX = 0, mSpeedY = 0;
-		float mAccelerationX = 0.f, mAccelerationY = 1600.f;
+		float mAccelerationX = 0.f, mAccelerationY = 1200.f;
 		float mRadius = 25.f, mDensity = 1.f;
 		float mBounceCoefficient = 0.7f;
 		sf::Texture mTexture;
@@ -19,9 +19,11 @@ namespace nf {
 		Ball() = default;
 
 		void setup(float positionX, float positionY, std::string fileName);
+		void restart(float positionX, float positionY);
 
 		float getPositionX();
 		float getPositionY();
+		float getRadius();
 		sf::Sprite getSprite();
 
 		void update(sf::Time deltaTime, int fieldWidth, int fieldHeight);

@@ -27,6 +27,11 @@ namespace nf {
 		float mCrossbar2PositionX = 1720.f, mCrossbar2PositionY = 660.f;
 		float mCrossbarRadius = 10.f;
 
+		int mScore1 = 0, mScore2 = 0;
+		sf::Font mFont;
+		sf::Text mTextScore1, mTextScore2;
+		int mGoalFlag = 0;
+
 		void processInput();
 		void update();
 		void render();

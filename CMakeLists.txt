@@ -14,7 +14,7 @@ FetchContent_MakeAvailable(SFML)
 
 include_directories("inc")
 add_executable("${PROJECT_NAME}" src/main.cpp src/Game.cpp src/Player.cpp src/Ball.cpp src/functions.cpp inc/Game.hpp inc/Player.hpp inc/Ball.hpp inc/functions.hpp)
-file(COPY "media/textures/ball.png" "media/textures/player1.png" "media/textures/player2.png" "media/textures/background.png" "media/textures/gates.png" DESTINATION "/")
+file(COPY "media/textures/ball.png" "media/textures/player1.png" "media/textures/player2.png" "media/textures/background.png" "media/textures/gates.png" "media/fonts/borsok.ttf" DESTINATION "/")
 target_link_libraries("${PROJECT_NAME}" PRIVATE sfml-graphics)
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_17)
 

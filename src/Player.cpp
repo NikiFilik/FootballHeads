@@ -15,6 +15,12 @@ namespace nf {
 		mRightKey = rightKey;
 		mJumpKey = jumpKey;
 	}
+	void Player::restart(float positionX, float positionY) {
+		mPositionX = positionX;
+		mPositionY = positionY;
+		mSpeedX = 0.f;
+		mSpeedY = 0.f;
+	}
 
 	void Player::setSpeedX(float speed) {
 		mSpeedX = speed;

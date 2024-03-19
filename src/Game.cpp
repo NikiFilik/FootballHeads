@@ -25,6 +25,18 @@ namespace nf {
 		mCrossbar2.setPosition(1720.f, 660.f);
 		mCrossbar1.setFillColor(sf::Color::White);
 		mCrossbar2.setFillColor(sf::Color::White);
+
+		mFont.loadFromFile("borsok.ttf");
+		mTextScore1.setFont(mFont);
+		mTextScore2.setFont(mFont);
+		mTextScore1.setString(std::to_string(mScore1));
+		mTextScore2.setString(std::to_string(mScore2));
+		mTextScore1.setCharacterSize(200);
+		mTextScore2.setCharacterSize(200);
+		mTextScore1.setFillColor(sf::Color::White);
+		mTextScore2.setFillColor(sf::Color::White);
+		mTextScore1.setPosition(1780.f, 0.f);
+		mTextScore2.setPosition(20.f, 0.f);
 	}
 
 	void Game::run() {
@@ -34,12 +46,19 @@ namespace nf {
 			sf::Time timeSinceLastUpdate = sf::Time::Zero;
 			while (mWindow.isOpen())
 			{
-				timeSinceLastUpdate += clock.restart();
-				if (timeSinceLastUpdate >= timePerFrame) {
-					timeSinceLastUpdate -= timePerFrame;
-					processInput();
-					update();
-					render();
+				mGoalFlag = 0;
+				mBall.restart(960.f, 540.f);
+				mPlayer1.restart(1440.f, 840.f);
+				mPlayer2.restart(480.f, 840.f);
+
+				while (mGoalFlag < 120 && mWindow.isOpen()) {
+					timeSinceLastUpdate += clock.restart();
+					if (timeSinceLastUpdate >= timePerFrame) {
+						timeSinceLastUpdate -= timePerFrame;
+						processInput();
+						update();
+						render();
+					}
 				}
 			}
 		}
@@ -219,6 +238,21 @@ namespace nf {
 			}
 		}
 
+		if (mBall.getPositionX() + mBall.getRadius() <= mCrossbar1PositionX && mBall.getPositionY() - mBall.getRadius() >= mCrossbar1PositionY && mGoalFlag == 0) {
+			mScore1++;
+			mGoalFlag++;
+		}
+		if (mBall.getPositionX() - mBall.getRadius() >= mCrossbar2PositionX && mBall.getPositionY() - mBall.getRadius() >= mCrossbar1PositionY && mGoalFlag == 0) {
+			mScore2++;
+			mGoalFlag++;
+		}
+		if (mGoalFlag > 0) {
+			mGoalFlag++;
+		}
+
+		mTextScore1.setString(std::to_string(mScore1));
+		mTextScore2.setString(std::to_string(mScore2));
+
 		mBall.update(timePerFrame, mFieldWidth, mFieldHeight);
 		mPlayer1.update(timePerFrame, mFieldWidth, mFieldHeight);
 		mPlayer2.update(timePerFrame, mFieldWidth, mFieldHeight);
@@ -228,6 +262,9 @@ namespace nf {
 		mWindow.clear();
 
 		mWindow.draw(mBackground);
+
+		mWindow.draw(mTextScore1);
+		mWindow.draw(mTextScore2);
 
 		mWindow.draw(mBall.getSprite());
 		mWindow.draw(mPlayer1.getSprite());

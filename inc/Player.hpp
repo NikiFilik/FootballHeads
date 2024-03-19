@@ -10,8 +10,8 @@ namespace nf {
 		float mPositionX, mPositionY;
 		float mSpeedX = 0.f, mSpeedY = 0.f;
 		float mMaxSpeed = 500.f, mBoost = 3000.f, mSlowdown = 1500.f;
-		float mJumpForce = 650.f;
-		float mAccelerationX = 0.f, mAccelerationY = 1600.f;
+		float mJumpForce = 550.f;
+		float mAccelerationX = 0.f, mAccelerationY = 1200.f;
 		float mRadius = 50.f, mDensity = 1.f;
 		float mBounceCoefficient = 0.f;
 		sf::Texture mTexture;
@@ -21,6 +21,7 @@ namespace nf {
 		Player() = default;
 
 		void setup(float positionX, float positionY, std::string fileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey);
+		void restart(float positionX, float positionY);
 
 		void setSpeedX(float speed);
 		void setSpeedY(float speed);

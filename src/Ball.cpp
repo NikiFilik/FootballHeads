@@ -14,12 +14,21 @@ namespace nf {
 		mSprite.setOrigin(mRadius, mRadius);
 		mSprite.setPosition(mPositionX, mPositionY);
 	}
+	void Ball::restart(float positionX, float positionY) {
+		mPositionX = positionX;
+		mPositionY = positionY;
+		mSpeedX = nf::randIntFromRange(-400, 401);
+		mSpeedY = nf::randIntFromRange(-400, 401);
+	}
 
 	float Ball::getPositionX() {
 		return mPositionX;
 	}
 	float Ball::getPositionY() {
 		return mPositionY;
+	}
+	float Ball::getRadius() {
+		return mRadius;
 	}
 	sf::Sprite Ball::getSprite() {
 		return mSprite;
