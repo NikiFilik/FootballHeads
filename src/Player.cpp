@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace nf {
-	void Player::setup(float positionX, float positionY, std::string fileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey) {
+	void Player::setup(float positionX, float positionY, std::string fileName, std::string legFileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey, sf::Keyboard::Key kickKey, int side) {
 		mPositionX = positionX;
 		mPositionY = positionY;
 		mTexture.loadFromFile(fileName);
@@ -14,12 +14,22 @@ namespace nf {
 		mLeftKey = leftKey;
 		mRightKey = rightKey;
 		mJumpKey = jumpKey;
+		mKickKey = kickKey;
+		mSide = side;
+
+		mLegTexture.loadFromFile(legFileName);
+		mLegSprite.setTexture(mLegTexture);
+		mLegSprite.setOrigin(mLegRadius, -mRadius * 0.9f);
+		mLegSprite.setPosition(mPositionX, mPositionY);
 	}
 	void Player::restart(float positionX, float positionY) {
 		mPositionX = positionX;
 		mPositionY = positionY;
 		mSpeedX = 0.f;
 		mSpeedY = 0.f;
+		mLegSprite.setRotation(0);
+		mLegRotationSpeed = 0.f;
+		legUpdate();
 	}
 
 	void Player::setSpeedX(float speed) {
@@ -59,15 +69,49 @@ namespace nf {
 	sf::Keyboard::Key Player::getJumpKey() {
 		return mJumpKey;
 	}
+	sf::Keyboard::Key Player::getKickKey() {
+		return mKickKey;
+	}
+	sf::Sprite Player::getLegSprite() {
+		return mLegSprite;
+	}
+	float Player::getLegPositionX() {
+		return mLegPositionX;
+	}
+	float Player::getLegPositionY() {
+		return mLegPositionY;
+	}
+	float Player::getLegSpeedX() {
+		return mLegSpeedX;
+	}
+	float Player::getLegSpeedY() {
+		return mLegSpeedY;
+	}
+	float Player::getLegRadius() {
+		return mLegRadius;
+	}
 
 	void Player::moveLeft(sf::Time deltaTime) {
 		mSpeedX = std::max(-mMaxSpeed, mSpeedX - mBoost * deltaTime.asSeconds());
+		legUpdate();
 	}
 	void Player::moveRight(sf::Time deltaTime) {
 		mSpeedX = std::min(mMaxSpeed, mSpeedX + mBoost * deltaTime.asSeconds());
+		legUpdate();
+	}
+	void Player::doKick(sf::Time deltaTime) {
+		if (mSide == 1) {
+			mLegRotationSpeed = std::min(mLegMaxRotationSpeed, mLegRotationSpeed + mBoost * deltaTime.asSeconds());
+			legUpdate();
+		}
+		else {
+			mLegRotationSpeed = std::max(mLegMaxRotationSpeed * mSide, mLegRotationSpeed + mBoost * deltaTime.asSeconds() * mSide);
+			legUpdate();
+		}
 	}
 	void Player::doJump() {
 		mSpeedY = -mJumpForce;
+		legUpdate();
 	}
 
 	void Player::update(sf::Time deltaTime, int fieldWidth, int fieldHeight) {
@@ -88,9 +132,32 @@ namespace nf {
 		}
 
 		mSprite.setPosition(mPositionX, mPositionY);
+		mLegSprite.setPosition(mPositionX, mPositionY);
 
 		mSpeedX += mAccelerationX * deltaTime.asSeconds();
 		mSpeedY += mAccelerationY * deltaTime.asSeconds();
+
+		mLegSprite.rotate(mLegRotationSpeed * deltaTime.asSeconds());
+		if (mSide == 1) {
+			if (mLegSprite.getRotation() >= 90.f && mLegSprite.getRotation() <= 120.f) {
+				mLegSprite.setRotation(90.f);
+				mLegRotationSpeed *= 0.1f;
+			}
+			if (mLegSprite.getRotation() <= 315.f && mLegSprite.getRotation() >= 285.f) {
+				mLegSprite.setRotation(315.f);
+				mLegRotationSpeed *= 0.1f;
+			}
+		}
+		else {
+			if (mLegSprite.getRotation() >= 45.f && mLegSprite.getRotation() <= 75.f) {
+				mLegSprite.setRotation(45.f);
+				mLegRotationSpeed *= 0.1f;
+			}
+			if (mLegSprite.getRotation() <= 270.f && mLegSprite.getRotation() >= 240.f) {
+				mLegSprite.setRotation(270.f);
+				mLegRotationSpeed *= 0.1f;
+			}
+		}
 
 		if (mSpeedX > 0) {
 			mSpeedX = std::max(0.f, mSpeedX - mSlowdown * deltaTime.asSeconds());
@@ -98,6 +165,22 @@ namespace nf {
 		if (mSpeedX < 0) {
 			mSpeedX = std::min(0.f, mSpeedX + mSlowdown * deltaTime.asSeconds());
 		}
+
+		if (mSide == 1) {
+			mLegRotationSpeed = std::min(mLegMaxRotationSpeed, mLegRotationSpeed + -mLegSlowdown * deltaTime.asSeconds());
+			legUpdate();
+		}
+		else {
+			mLegRotationSpeed = std::max(mLegMaxRotationSpeed * mSide, mLegRotationSpeed + -mLegSlowdown * deltaTime.asSeconds() * mSide);
+			legUpdate();
+		}
+		if (mLegRotationSpeed > mLegMaxRotationSpeed) {
+			mLegRotationSpeed = mLegMaxRotationSpeed;
+		}
+		if (mLegRotationSpeed < -mLegMaxRotationSpeed) {
+			mLegRotationSpeed = -mLegMaxRotationSpeed;
+		}
+		legUpdate();
 	}
 
 	bool Player::leftStraightCollisionDetector(int width) {
@@ -127,15 +210,19 @@ namespace nf {
 
 	void Player::solveLeftStraightCollision() {
 		mSpeedX *= -mBounceCoefficient;
+		legUpdate();
 	}
 	void Player::solveRightStraightCollision() {
 		mSpeedX *= -mBounceCoefficient;
+		legUpdate();
 	}
 	void Player::solveUpStraightCollision() {
 		mSpeedY *= -mBounceCoefficient;
+		legUpdate();
 	}
 	void Player::solveDownStraightCollision() {
 		mSpeedY *= -mBounceCoefficient;
+		legUpdate();
 	}
 
 	bool Player::circleCollisionDetector(Player other) {
@@ -179,6 +266,8 @@ namespace nf {
 		mSpeedY = newThisNormalSpeedY + newThisTangentSpeedY;
 		other.setSpeedX(newOtherNormalSpeedX + newOtherTangentSpeedX);
 		other.setSpeedY(newOtherNormalSpeedY + newOtherTangentSpeedY);
+		legUpdate();
+		other.legUpdate();
 	}
 
 	bool Player::circleCollisionDetector(sf::CircleShape circle) {
@@ -216,5 +305,37 @@ namespace nf {
 
 		mSpeedX = newPlayerNormalSpeedX + newPlayerTangentSpeedX;
 		mSpeedY = newPlayerNormalSpeedY + newPlayerTangentSpeedY;
+		legUpdate();
+	}
+
+	void Player::legUpdate() {
+		if (mSide == 1) {
+			if (mLegSprite.getRotation() >= 0.f && mLegSprite.getRotation() <= 270.f) {
+				mLegPositionX = mPositionX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegPositionY = mPositionY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegSpeedX = mSpeedX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+				mLegSpeedY = mSpeedY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+			}
+			else {
+				mLegPositionX = mPositionX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegPositionY = mPositionY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegSpeedX = mSpeedX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+				mLegSpeedY = mSpeedY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+			}
+		}
+		else {
+			if (mLegSprite.getRotation() >= 0.f && mLegSprite.getRotation() <= 270.f) {
+				mLegPositionX = mPositionX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegPositionY = mPositionY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegSpeedX = mSpeedX - std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+				mLegSpeedY = mSpeedY + std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+			}
+			else {
+				mLegPositionX = mPositionX + std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegPositionY = mPositionY - std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * (mLegRadius + mRadius * 0.9f);
+				mLegSpeedX = mSpeedX - std::cos((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+				mLegSpeedY = mSpeedY + std::sin((270.f - mLegSprite.getRotation()) * 3.14f / 180.f) * mLegRotationSpeed * (mLegRadius + mRadius * 0.9f) * 2.f * 3.14f / 360.f;
+			}
+		}
 	}
 }

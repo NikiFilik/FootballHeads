@@ -41,6 +41,9 @@ namespace nf {
 		bool circleCollisionDetector(Player player);
 		void solveCircleCollision(Player& player);
 
+		bool legCollisionDetector(Player player);
+		void solveLegCollision(Player& player);
+
 		bool circleCollisionDetector(sf::CircleShape circle);
 		void solveCircleCollision(sf::CircleShape& circle);
 	};

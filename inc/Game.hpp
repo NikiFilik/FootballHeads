@@ -29,7 +29,7 @@ namespace nf {
 
 		int mScore1 = 0, mScore2 = 0;
 		sf::Font mFont;
-		sf::Text mTextScore1, mTextScore2;
+		sf::Text mTextScore1, mTextScore2, mGoalSign;
 		int mGoalFlag = 0;
 
 		void processInput();

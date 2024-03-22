@@ -16,11 +16,22 @@ namespace nf {
 		float mBounceCoefficient = 0.f;
 		sf::Texture mTexture;
 		sf::Sprite mSprite;
-		sf::Keyboard::Key mLeftKey, mRightKey, mJumpKey;
+		sf::Keyboard::Key mLeftKey, mRightKey, mJumpKey, mKickKey;
+
+		int mSide;
+		float mLegPositionX, mLegPositionY;
+		float mLegSpeedX = 0.f, mLegSpeedY = 0.f;
+		float mLegRotationSpeed = 0.f;
+		float mLegMaxRotationSpeed = 1200.f, mLegBoost = 3600.f, mLegSlowdown = 1200.f;
+		float mLegRadius = 20.f;
+		sf::Texture mLegTexture;
+		sf::Sprite mLegSprite;
+
+		void legUpdate();
 	public:
 		Player() = default;
 
-		void setup(float positionX, float positionY, std::string fileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey);
+		void setup(float positionX, float positionY, std::string fileName, std::string legFileName, sf::Keyboard::Key leftKey, sf::Keyboard::Key rightKey, sf::Keyboard::Key jumpKey, sf::Keyboard::Key kickKey, int side);
 		void restart(float positionX, float positionY);
 
 		void setSpeedX(float speed);
@@ -36,9 +47,17 @@ namespace nf {
 		sf::Keyboard::Key getLeftKey();
 		sf::Keyboard::Key getRightKey();
 		sf::Keyboard::Key getJumpKey();
+		sf::Keyboard::Key getKickKey();
+		sf::Sprite getLegSprite();
+		float getLegPositionX();
+		float getLegPositionY();
+		float getLegSpeedX();
+		float getLegSpeedY();
+		float getLegRadius();
 
 		void moveLeft(sf::Time deltaTime);
 		void moveRight(sf::Time deltaTime);
+		void doKick(sf::Time deltaTime);
 		void doJump();
 
 		void update(sf::Time deltaTime, int fieldWidth, int fieldHeight);

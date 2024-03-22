@@ -140,6 +140,49 @@ namespace nf {
 		player.setSpeedY(newPlayerNormalSpeedY + newPlayerTangentSpeedY);
 	}
 
+	bool Ball::legCollisionDetector(Player player) {
+		if (power(mPositionX - player.getLegPositionX(), 2) + power(mPositionY - player.getLegPositionY(), 2) <= power(mRadius + player.getLegRadius(), 2)) {
+			float deltaPositionX = mPositionX - player.getLegPositionX();
+			float deltaPositionY = mPositionY - player.getLegPositionY();
+			float deltaSpeedX = mSpeedX - player.getLegSpeedX();
+			float deltaSpeedY = mSpeedY - player.getLegSpeedY();
+			if (deltaPositionX * deltaSpeedX + deltaPositionY * deltaSpeedY <= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void Ball::solveLegCollision(Player& player) {
+		//https://www.vobarian.com/collisions/2dcollisions2.pdf
+
+		float unitNormalVectorX, unitNormalVectorY, unitTangentVectorX, unitTangentVectorY;
+		nf::findCoordinatesOfUnitNormalVector(mPositionX, mPositionY, player.getLegPositionX(), player.getLegPositionY(), unitNormalVectorX, unitNormalVectorY);
+		unitTangentVectorX = unitNormalVectorY;
+		unitTangentVectorY = -unitNormalVectorX;
+
+		float ballNormalSpeed = unitNormalVectorX * mSpeedX + unitNormalVectorY * mSpeedY;
+		float ballTangentSpeed = unitTangentVectorX * mSpeedX + unitTangentVectorY * mSpeedY;
+		float playerNormalSpeed = unitNormalVectorX * player.getLegSpeedX() + unitNormalVectorY * player.getLegSpeedY();
+		float playerTangentSpeed = unitTangentVectorX * player.getLegSpeedX() + unitTangentVectorY * player.getLegSpeedY();
+
+		float ballMass = power(mRadius, 3) * mDensity, playerMass = power(player.getLegRadius(), 3) * player.getDensity() * 10000.f;
+		float newBallNormalSpeed, newBallTangentSpeed, newPlayerNormalSpeed, newPlayerTangentSpeed;
+		nf::solveOneDimensionalCollision(ballMass, playerMass, ballNormalSpeed, playerNormalSpeed, newBallNormalSpeed, newPlayerNormalSpeed);
+		newBallTangentSpeed = ballTangentSpeed;
+		newPlayerTangentSpeed = playerTangentSpeed;
+
+		float newBallNormalSpeedX = newBallNormalSpeed * unitNormalVectorX, newBallNormalSpeedY = newBallNormalSpeed * unitNormalVectorY;
+		float newBallTangentSpeedX = newBallTangentSpeed * unitTangentVectorX, newBallTangentSpeedY = newBallTangentSpeed * unitTangentVectorY;
+		float newPlayerNormalSpeedX = newPlayerNormalSpeed * unitNormalVectorX, newPlayerNormalSpeedY = newPlayerNormalSpeed * unitNormalVectorY;
+		float newPlayerTangentSpeedX = newPlayerTangentSpeed * unitTangentVectorX, newPlayerTangentSpeedY = newPlayerTangentSpeed * unitTangentVectorY;
+
+		mSpeedX = newBallNormalSpeedX + newBallTangentSpeedX;
+		mSpeedY = newBallNormalSpeedY + newBallTangentSpeedY;
+		//player.setSpeedX(newPlayerNormalSpeedX + newPlayerTangentSpeedX);
+		//player.setSpeedY(newPlayerNormalSpeedY + newPlayerTangentSpeedY);
+	}
+
 	bool Ball::circleCollisionDetector(sf::CircleShape circle) {
 		if (power(mPositionX - circle.getPosition().x, 2) + power(mPositionY - circle.getPosition().y, 2) <= power(mRadius + circle.getRadius(), 2)) {
 			float deltaPositionX = mPositionX - circle.getPosition().x;

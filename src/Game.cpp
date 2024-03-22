@@ -8,8 +8,8 @@ namespace nf {
 
 		mBall.setup(960.f, 540.f, "ball.png");
 
-		mPlayer1.setup(1440.f, 840.f, "player1.png", sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up);
-		mPlayer2.setup(480.f, 840.f, "player2.png", sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W);
+		mPlayer1.setup(1440.f, 840.f, "player1.png", "leg1.png", sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up, sf::Keyboard::P, 1);
+		mPlayer2.setup(480.f, 840.f, "player2.png", "leg2.png", sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W, sf::Keyboard::Space, -1);
 
 		mBackgroundTexture.loadFromFile("background.png");
 		mBackground.setTexture(mBackgroundTexture);
@@ -29,14 +29,19 @@ namespace nf {
 		mFont.loadFromFile("borsok.ttf");
 		mTextScore1.setFont(mFont);
 		mTextScore2.setFont(mFont);
+		mGoalSign.setFont(mFont);
 		mTextScore1.setString(std::to_string(mScore1));
 		mTextScore2.setString(std::to_string(mScore2));
+		mGoalSign.setString("GOAL!!!");
 		mTextScore1.setCharacterSize(200);
 		mTextScore2.setCharacterSize(200);
+		mGoalSign.setCharacterSize(200);
 		mTextScore1.setFillColor(sf::Color::White);
 		mTextScore2.setFillColor(sf::Color::White);
-		mTextScore1.setPosition(1780.f, 0.f);
-		mTextScore2.setPosition(20.f, 0.f);
+		mGoalSign.setFillColor(sf::Color::White);
+		mTextScore1.setPosition(1780, 0);
+		mTextScore2.setPosition(20, 0);
+		mGoalSign.setPosition(610, 100);
 	}
 
 	void Game::run() {
@@ -80,6 +85,9 @@ namespace nf {
 				mPlayer1.doJump();
 			}
 		}
+		if (sf::Keyboard::isKeyPressed(mPlayer1.getKickKey())) {
+			mPlayer1.doKick(timePerFrame);
+		}
 
 		if (sf::Keyboard::isKeyPressed(mPlayer2.getLeftKey())) {
 			mPlayer2.moveLeft(timePerFrame);
@@ -91,6 +99,9 @@ namespace nf {
 			if (mPlayer2.downStraightCollisionDetector(mFieldHeight) || (mPlayer2.circleCollisionDetector(mPlayer1) && mPlayer1.downStraightCollisionDetector(mFieldHeight))) {
 				mPlayer2.doJump();
 			}
+		}
+		if (sf::Keyboard::isKeyPressed(mPlayer2.getKickKey())) {
+			mPlayer2.doKick(timePerFrame);
 		}
 	}
 
@@ -141,6 +152,15 @@ namespace nf {
 		}
 		if (mBall.circleCollisionDetector(mPlayer2)) {
 			mBall.solveCircleCollision(mPlayer2);
+		}
+
+
+
+		if (mBall.legCollisionDetector(mPlayer1)) {
+			mBall.solveLegCollision(mPlayer1);
+		}
+		if (mBall.legCollisionDetector(mPlayer2)) {
+			mBall.solveLegCollision(mPlayer2);
 		}
 
 
@@ -267,10 +287,18 @@ namespace nf {
 		mWindow.draw(mTextScore2);
 
 		mWindow.draw(mBall.getSprite());
+
+		mWindow.draw(mPlayer1.getLegSprite());
 		mWindow.draw(mPlayer1.getSprite());
+
+		mWindow.draw(mPlayer2.getLegSprite());
 		mWindow.draw(mPlayer2.getSprite());
 
 		mWindow.draw(mGates);
+
+		if (mGoalFlag != 0) {
+			mWindow.draw(mGoalSign);
+		}
 
 		mWindow.display();
 	}
